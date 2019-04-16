@@ -1,0 +1,4 @@
+6
+{'section': 1, 'population': 48, 'max_rate': 8, 'edges': [{'begin': 4, 'end': 5, 'duedate': 922337, 'length': 9, 'capacity': 10}, {'begin': 6, 'end': 5, 'duedate': 922337, 'length': 12, 'capacity': 11}]}
+{'section': 2, 'population': 30, 'max_rate': 5, 'edges': [{'begin': 4, 'end': 5, 'duedate': 922337, 'length': 9, 'capacity': 10}, {'begin': 6, 'end': 5, 'duedate': 922337, 'length': 12, 'capacity': 11}]}
+{'section': 3, 'population': 33, 'max_rate': 3, 'edges': [{'begin': 6, 'end': 5, 'duedate': 922337, 'length': 12, 'capacity': 11}]}
