@@ -65,86 +65,97 @@ class Read:
 		return self.terminal_node
 
 
-	def lower_bound(self, filename):
+	def lower_bound(self):
 		# Pour chaque sommet d'évacuation faire comme s'il était seul à évacuer
 		# Trouver le max rate en fonction de plus petit arc
-		# Calculer le temps d'évacuation
+		# Calculer le temps d'évacuation = max rate + longueur du path
 		# Prendre le max des temps d'évacuations
+
 		solutions = [0]* len(self.paths_list)
+		length = [0]* len(self.paths_list)
+		rates = [0]* len(self.paths_list)
 		ct = 0
 
 		for path in self.paths_list:
-			#Find min rate
-			mini = path["max_rate"]
+			#Find min rate & find length of path
+			rates[ct] = path["max_rate"]
+
 			for edge in path["edges"]:
-				if mini > edge["capacity"]:
-					mini = edge["capacity"]
-			solutions[ct] = math.ceil(float(path["population"])/float(mini))
+				length[ct] += edge["length"]
+				if rates[ct] > edge["capacity"]:
+					rates[ct] = edge["capacity"]
+
+			#Solution = Population/min capacity
+			solutions[ct] = (math.ceil(float(path["population"])/float(rates[ct])))
 			ct += 1
 
 
 		#TODO Checker la solution
+
 		#Ecriture de la solution
-		output = open(filename,"w")
+		output = open(self.filename.split(".")[0]+".lower","w")
 		
-		output.write(self.filename+"\n")
+		output.write(self.filename.split(".")[0]+"\n")
 		output.write(str(len(self.paths_list))+"\n")
 
 		for path in range(len(solutions)):
-			output.write(str(self.paths_list[path]["section"])+" "+str(solutions[path])+" 0\n")
-		output.write("???\n???\n"+str(max(solutions)))
+			output.write(str(self.paths_list[path]["section"])+" "+str(rates[path])+" 0\n")
+		output.write("???\n"+str(max([x + y for x, y in zip(solutions, length)]))+"\n???")
 		output.write("\nlower bound V1")
-
-
 
 		return solutions
 
 	def upper_bound(self):
 
 		#Commencer par lower_bound
-		#Faire passer les sommets dans l'ordre, commençant dès que le précédent es tcomplètement fini 
+		#Faire passer les sommets dans l'ordre, commençant dès que le précédent estvcomplètement fini 
 		solutions = [0]* len(self.paths_list)
+		length = [0]* len(self.paths_list)
+		rates = [0]* len(self.paths_list)
 		ct = 0
 
 		for path in self.paths_list:
-			#Find min rate
-			mini = path["max_rate"]
+			#Find min rate & find length of path
+			rates[ct] = path["max_rate"]
+
 			for edge in path["edges"]:
-				if mini > edge["capacity"]:
-					mini = edge["capacity"]
-			solutions[ct] = math.ceil(float(path["population"])/float(mini))
+				length[ct] += edge["length"]
+				if rates[ct] > edge["capacity"]:
+					rates[ct] = edge["capacity"]
+
+			#Solution = Population/min capacity
+			solutions[ct] = (math.ceil(float(path["population"])/float(rates[ct])))
 			ct += 1
 
 		beg_time = [0]*(len(solutions))
 		beg_time[0] = 0
 		for i in range(1, len(solutions)):
-			beg_time[i] = beg_time[i-1]+solutions[i-1]
+			beg_time[i] = beg_time[i-1]+[x + y for x, y in zip(solutions, length)][i-1]
 
-		print(beg_time)
-		print(solutions)
+
 		#TODO Checker la solution
 		#Ecriture de la solution
-		# output = open(filename,"w")
+		output = open(self.filename.split(".")[0]+".upper","w")
 		
-		# output.write(self.filename+"\n")
-		# output.write(str(len(self.paths_list))+"\n")
+		output.write(self.filename.split(".")[0]+"\n")
+		output.write(str(len(self.paths_list))+"\n")
 
-		# for path in range(len(solutions)):
-		# 	output.write(str(self.paths_list[path]["section"])+" "+str(solutions[path])+" 0\n")
-		# output.write("???\n???\n"+str(max(solutions)))
-		# output.write("\nlower bound V1")
+		for path in range(len(solutions)):
+			output.write(str(self.paths_list[path]["section"])+" "+str(rates[path])+" "+str(beg_time[path])+"\n")
+		output.write("???\n"+str(beg_time[-1]+solutions[-1]+length[-1])+"\n???")
+		output.write("\nupper bound V1")
 
 if __name__ == '__main__':
-	f = Read("test.full")
+	f = Read("dense_10_30_3_1.full")
 	f.parse()
-	#lb_rates = f.lower_bound("test_out")
+	f.lower_bound()
 	#print(lb_rates)
 	f.upper_bound()
 
-	out = open("out", "w")
-	out.write(str(f.get_safe_node())+"\n")
-	for p in f.get_paths():
-		out.write(str(p)+"\n")
+	# out = open("out", "w")
+	# out.write(str(f.get_safe_node())+"\n")
+	# for p in f.get_paths():
+	# 	out.write(str(p)+"\n")
 
 
 
