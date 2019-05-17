@@ -1,5 +1,5 @@
 import math
-
+from copy import deepcopy
 
 class Read:
 
@@ -10,12 +10,14 @@ class Read:
 	paths_list = []
 
 	terminal_node = 0
+
+	#Solution =[{'section': 1, 'rate': 8, 'begin': 0}, {'section': 2, 'rate': 5, 'begin': 27}, {'section': 3, 'rate': 3, 'begin': 54}]
 	
 
 	def __init__(self, filename):
 		self.filename = filename
 
-	def parse(self):
+	def parse_data(self):
 		
 		def find_edge(i, j):
 			for edge in parse_edges:
@@ -56,7 +58,22 @@ class Read:
 				
 			self.paths_list.append(path_temp)
 
-		
+	@staticmethod
+	def parse_sol(filename):
+		f = open(filename, "r")
+		lines = f.readlines()
+		nb_sec = int(lines[1])
+		lines = lines[2:nb_sec+2]
+		print(lines)
+
+		sol = []
+		for l in lines:
+			tmp = l.strip().split()
+			sol.append({'section':int(tmp[0]), 'rate':int(tmp[1]), 'begin':int(tmp[2])}) 
+		print(sol)
+
+		return sol 
+			
 		
 	def get_paths(self):
 		return self.paths_list
@@ -145,12 +162,36 @@ class Read:
 		output.write("???\n"+str(beg_time[-1]+solutions[-1]+length[-1])+"\n???")
 		output.write("\nupper bound V1")
 
+	@staticmethod
+	def successors(sol):
+		#For each section +/- 1 on rate and begin date
+		succ = []
+
+		for i in range(len(sol)):
+			for val in [-1,1]:
+				tmp1 = deepcopy(sol)
+				tmp1[i]['begin'] += val 
+				succ.append(tmp1)
+
+				tmp2 = deepcopy(sol)
+				tmp2[i]['rate'] += val
+				succ.append(tmp2)
+		return succ
+
+
 if __name__ == '__main__':
 	f = Read("dense_10_30_3_1.full")
-	f.parse()
-	f.lower_bound()
+	f.parse_data()
+	#f.lower_bound()
 	#print(lb_rates)
-	f.upper_bound()
+	#f.upper_bound()
+
+	#Read.parse_sol("test.upper")
+	
+	succ= Read.successors([{'section': 1, 'rate': 10, 'begin': 20},{'section': 2, 'rate': 5, 'begin': 15}])
+
+	for s in succ:
+		print(s)
 
 	# out = open("out", "w")
 	# out.write(str(f.get_safe_node())+"\n")
