@@ -8,6 +8,7 @@ class Read:
 
 	#Path1 = {"section": 0, "population": 2500, "max_rate": 40, "edges":[{"begin":0,"end":1,"duedate":15,"length":8,"capacity":25}]}
 	paths_list = []
+	edge_list = []
 
 	terminal_node = 0
 
@@ -53,8 +54,10 @@ class Read:
 			path_temp = {"section": int(path[0]), "population": int(path[1]), "max_rate": int(path[2]), "edges":[]}
 			
 			for i in range(4, len(path)-1):
-				edge = find_edge(path[i], path[i+1])
-				path_temp["edges"].append({"begin":int(edge[0]),"end":int(edge[1]),"duedate":int(edge[2]),"length":int(float(edge[3])),"capacity":int(float(edge[4]))})
+				tmp_edge = find_edge(path[i], path[i+1])
+				edge = {"begin":int(tmp_edge[0]),"end":int(tmp_edge[1]),"duedate":int(tmp_edge[2]),"length":int(float(tmp_edge[3])),"capacity":int(float(tmp_edge[4])), "use":[]}
+				self.edge_list.append(edge)
+				path_temp["edges"].append(edge)
 				
 			self.paths_list.append(path_temp)
 
@@ -64,15 +67,55 @@ class Read:
 		lines = f.readlines()
 		nb_sec = int(lines[1])
 		lines = lines[2:nb_sec+2]
-		print(lines)
+		
 
 		sol = []
 		for l in lines:
 			tmp = l.strip().split()
 			sol.append({'section':int(tmp[0]), 'rate':int(tmp[1]), 'begin':int(tmp[2])}) 
-		print(sol)
+		
 
-		return sol 
+		return sol
+
+	def check_sol(self, filename):
+		paths = self.paths_list
+		finish = self.terminal_node
+		solution = Read.parse_sol(filename)
+		pairs = []
+		validity = "valid"
+		last_edge = self.edge_list[0]
+		global_max = max(last_edge["use"],key = lambda x : x[0], default = (0,0))
+
+		for n in range(len(solution)):
+			pairs.append({'solution':solution[n], 'path':paths[n]})
+
+		for pair in pairs:
+			time = pair["solution"]["begin"]
+			rate = pair["solution"]["rate"]
+			num_groups = math.ceil(float(pair["path"]["population"]) / float(pair["solution"]["rate"]))
+			last_group = pair["path"]["population"] % pair["solution"]["rate"]
+
+			for n in range(len(pair["path"]["edges"])):
+				pair["path"]["edges"][n]["use"].append((time,rate))
+				pair["path"]["edges"][n]["use"].append((time+num_groups-1,(rate-last_group) * (-1)))
+				pair["path"]["edges"][n]["use"].append((time+num_groups,last_group * (-1)))
+				length = pair["path"]["edges"][n]["length"]
+				time = time + length
+
+		for edge in self.edge_list:
+			fill = 0
+			edge["use"].sort(key = lambda x : x[0]) # Petite lambda-fonction
+			local_max = max(edge["use"],key = lambda x : x[0], default = (0,0)) #Recuperer le temps auquel l'arc est complètement vidé
+
+			for n in edge["use"]:
+				fill += n[1]
+				if (fill > edge["capacity"]):
+					validity = "invalid"
+			if (local_max[0] > global_max[0]):
+				global_max = local_max
+
+		return validity,global_max[0]
+
 			
 		
 	def get_paths(self):
@@ -81,6 +124,8 @@ class Read:
 	def get_safe_node(self):
 		return self.terminal_node
 
+	def get_edges(self):
+		return self.edge_list
 
 	def lower_bound(self):
 		# Pour chaque sommet d'évacuation faire comme s'il était seul à évacuer
@@ -182,16 +227,19 @@ class Read:
 if __name__ == '__main__':
 	f = Read("dense_10_30_3_1.full")
 	f.parse_data()
+	f.lower_bound()
+	print(f.check_sol("dense_10_30_3_1.lower"))
+
 	#f.lower_bound()
 	#print(lb_rates)
 	#f.upper_bound()
 
 	#Read.parse_sol("test.upper")
 	
-	succ= Read.successors([{'section': 1, 'rate': 10, 'begin': 20},{'section': 2, 'rate': 5, 'begin': 15}])
+	# succ= Read.successors([{'section': 1, 'rate': 10, 'begin': 20},{'section': 2, 'rate': 5, 'begin': 15}])
 
-	for s in succ:
-		print(s)
+	# for s in succ:
+	# 	print(s)
 
 	# out = open("out", "w")
 	# out.write(str(f.get_safe_node())+"\n")
