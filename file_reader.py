@@ -223,6 +223,49 @@ class Read:
 				succ.append(tmp2)
 		return succ
 
+	#TODO Test
+	def hill_climbing(self, init_state):
+		state = deepcopy(init_state)
+
+		nb_it = 0
+		while True:
+			succs = Read.successors(state)
+			nb_it+=1
+			
+			# Keep the best successor
+			best_succ = succs[0]
+			for s in succs:
+				val_best = check_sol(best_succ)
+				val_tmp = check_sol(s)
+
+				if val_tmp[0] == "valid" and val_tmp[1] <= val_best[1]:
+					val_best = deepcopy(val_tmp)
+
+			# Check if the successor is valid and better than the current state
+			val_state = check_sol(state)
+			val_succ = check_sol(best_succ)
+			if val_succ[0] == "valid" and val_succ[1] >= val_state[1]:
+				return state, nb_it
+
+			state = deepcopy(best_succ)
+
+	
+	def compress_sol(self, sol):
+		for s in sol:
+			val = 1
+			while True:
+				s['begin'] -= val
+
+				if check_sol() == "invalid",_:
+					s['begin'] += val
+					if val==1:
+						break
+					val = 1
+				else:
+					val *= 2
+		return sol
+
+
 
 if __name__ == '__main__':
 	f = Read("dense_10_30_3_1.full")
