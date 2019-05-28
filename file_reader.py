@@ -89,6 +89,9 @@ class Read:
 					return edge
 			return("ERROR NOT FOUND")
 
+		for edge in self.edge_list:
+			edge["use"] = []
+
 		paths = self.paths_list
 		finish = self.terminal_node
 		solution = Read.parse_sol(filename)
@@ -114,22 +117,17 @@ class Read:
 				length = edge["length"]
 				time = time + length
 
-		output = open("test.out", "w")
 		for edge in self.edge_list:				#For each edge used by the evacuation
 			fill = 0
 			edge["use"].sort(key = lambda x : x[0]) # Petite lambda-fonction
 			local_max = max(edge["use"],key = lambda x : x[0], default = (0,0)) #Recuperer le temps auquel l'arc est complètement vidé
-			output.write(str(edge["begin"]) + "-" + str(edge["end"]) + ": capacity " + str(edge["capacity"]) + "\n")
 
 			for n in edge["use"]:				#For every event in that edge
-				fill += n[1]
-				output.write("(" + str(n[0]) + "," + str(n[1]) + ")\n")
-				if (fill > edge["capacity"]):
-					output.write("Invalid\n")
+				fill += n[1]	
+				if (fill > edge["capacity"]):		
 					validity = "invalid"
 			if (local_max[0] > global_max[0]):
 				global_max = local_max
-			output.write("\n")
 
 		return validity,global_max[0]
 
