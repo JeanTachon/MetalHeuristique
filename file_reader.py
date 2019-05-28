@@ -1,4 +1,5 @@
 import math
+import random
 from copy import deepcopy
 
 class Read:
@@ -280,16 +281,76 @@ class Read:
 					val *= 2
 		return sol
 
+	def random_restart(self, nb_sol):
+		#Identique à la borne sup
+		solutions = [0]* len(self.paths_list)
+		length = [0]* len(self.paths_list)
+		rates = [0]* len(self.paths_list)
+		ct = 0
+
+		for path in self.paths_list:
+			#Find min rate & find length of path
+			rates[ct] = path["max_rate"]
+
+			for edge in path["edges"]:
+				length[ct] += edge["length"]
+				if rates[ct] > edge["capacity"]:
+					rates[ct] = edge["capacity"]
+
+			#Solution = Population/min capacity
+			solutions[ct] = (math.ceil(float(path["population"])/float(rates[ct])))
+			ct += 1
+
+		possible_sols = []
+		for i in range(nb_sol):
+			#Randomize state
+
+			rdm = [x for x in range(len(self.paths_list))]
+			random.shuffle(rdm)
+			rdm_sol = [0]* len(solutions)
+			rdm_length = [0]* len(length)
+			rdm_rates = [0]* len(rates)
+
+			for i in range(len(rdm)):
+				rdm_sol[i] = solutions[rdm[i]]
+				rdm_length[i] = length[rdm[i]]
+				rdm_rates[i] = rates[rdm[i]]
+
+			#Generate solution
+
+			beg_time = [0]*(len(rdm_sol))
+			beg_time[0] = 0
+			for i in range(1, len(rdm_sol)):
+				beg_time[i] = beg_time[i-1]+[x + y for x, y in zip(rdm_sol, rdm_length)][i-1]
+
+			init_state = []
+			for path in range(len(rdm_sol)):
+				init_state.append({'section':self.paths_list[rdm[path]]["section"], 'rate':rdm_rates[path], 'begin':beg_time[path]})
+
+			init_state = Read.compress_sol(init_state)
+
+			possible_sols.append(hill_climbing(init_state))
+
+		best = None
+		best_val = possible_sols[0][1]
+		for sol in possible_sols:
+			if sol[1] > best_val:
+				best = sol
+				best_val = sol[1]
+
+		return best
+
 
 
 if __name__ == '__main__':
 	f = Read("dense_10_30_3_1_I.full")
 	f.parse_data()
-	f.lower_bound()
-	print(f.check_sol("dense_10_30_3_1_I.lower"))
+	f.random_restart(3)
+	# f.lower_bound()
+	# print(f.check_sol("dense_10_30_3_1_I.lower"))
 
-	f.upper_bound()
-	print(f.check_sol("dense_10_30_3_1_I.upper"))
+	# f.upper_bound()
+	# print(f.check_sol("dense_10_30_3_1_I.upper"))
 	#f.lower_bound()
 	#print(lb_rates)
 	#f.upper_bound()
