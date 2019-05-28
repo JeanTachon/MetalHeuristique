@@ -285,10 +285,13 @@ class Read:
 
 
 if __name__ == '__main__':
-	f = Read("dense_10_30_3_1.full")
+	f = Read("dense_10_30_3_1_I.full")
 	f.parse_data()
 	f.lower_bound()
-	print(f.check_sol("dense_10_30_3_1.lower"))
+	print(f.check_sol("dense_10_30_3_1_I.lower"))
+
+	f.upper_bound()
+	print(f.check_sol("dense_10_30_3_1_I.upper"))
 	#f.lower_bound()
 	#print(lb_rates)
 	#f.upper_bound()
