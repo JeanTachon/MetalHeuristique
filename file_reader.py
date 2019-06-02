@@ -2,12 +2,13 @@ import math
 import random
 from copy import deepcopy
 
+
 class Read:
 
-	#Attributes
+	# Attributes
 	filename = ""
 
-	#Path1 = {"section": 0, "population": 2500, "max_rate": 40, "edges":[{"begin":0,"end":1,"duedate":15,"length":8,"capacity":25}]}
+	# Path1 = {"section": 0, "population": 2500, "max_rate": 40, "edges":[{"begin":0,"end":1,"duedate":15,"length":8,"capacity":25}]}
 	paths_list = []
 
 	#edge = {"begin","end","duedate","length","capacity","use":[]}
@@ -82,7 +83,7 @@ class Read:
 
 		return sol
 
-	def check_sol(self, filename):
+	def check_sol(self, sol):
 
 		def find_edge(i,j):
 			for edge in self.edge_list:
@@ -95,14 +96,14 @@ class Read:
 
 		paths = self.paths_list
 		finish = self.terminal_node
-		solution = Read.parse_sol(filename)
+		solution = sol
 		pairs = []
 		validity = "valid"
 		last_edge = self.edge_list[0]
 		global_max = max(last_edge["use"],key = lambda x : x[0], default = (0,0))
 
 		for n in range(len(solution)):
-			pairs.append({'solution':solution[n], 'path':paths[n]})
+			pairs.append({'solution': solution[n], 'path': paths[n]})
 
 		for pair in pairs:		# For each path
 			time = pair["solution"]["begin"]
@@ -251,30 +252,33 @@ class Read:
 			# Keep the best successor
 			best_succ = succs[0]
 			for s in succs:
-				val_best = check_sol(best_succ)
-				val_tmp = check_sol(s)
+				val_best = self.check_sol(best_succ)
+				val_tmp = self.check_sol(s)
 
 				if val_tmp[0] == "valid" and val_tmp[1] <= val_best[1]:
 					val_best = deepcopy(val_tmp)
 
 			# Check if the successor is valid and better than the current state
-			val_state = check_sol(state)
-			val_succ = check_sol(best_succ)
+			val_state = self.check_sol(state)
+			val_succ = self.check_sol(best_succ)
 			if val_succ[0] == "valid" and val_succ[1] >= val_state[1]:
 				return state, nb_it
 
 			state = deepcopy(best_succ)
 
-	
 	def compress_sol(self, sol):
+		cpt = 0
 		for s in sol:
+			print(cpt)
+			cpt +=1
 			val = 1
 			while True:
-				s['begin'] -= val
+				if s['begin'] - val > 0:
+					s['begin'] -= val
 
-				if check_sol()[0] == "invalid":
+				if self.check_sol(sol)[0] == "invalid":
 					s['begin'] += val
-					if val==1:
+					if val == 1:
 						break
 					val = 1
 				else:
@@ -327,9 +331,9 @@ class Read:
 			for path in range(len(rdm_sol)):
 				init_state.append({'section':self.paths_list[rdm[path]]["section"], 'rate':rdm_rates[path], 'begin':beg_time[path]})
 
-			init_state = Read.compress_sol(init_state)
+			init_state = self.compress_sol(init_state)
 
-			possible_sols.append(hill_climbing(init_state))
+			possible_sols.append(self.hill_climbing(init_state))
 
 		best = None
 		best_val = possible_sols[0][1]
@@ -345,17 +349,22 @@ class Read:
 if __name__ == '__main__':
 	f = Read("dense_10_30_3_1_I.full")
 	f.parse_data()
-	f.random_restart(3)
-	# f.lower_bound()
-	# print(f.check_sol("dense_10_30_3_1_I.lower"))
+	#f.random_restart(3)
+	#f.lower_bound()
+	# print(f.check_sol(Read.parse_sol("dense_10_30_3_1_I.upper")))
 
-	# f.upper_bound()
+	#f.upper_bound()
 	# print(f.check_sol("dense_10_30_3_1_I.upper"))
 	#f.lower_bound()
 	#print(lb_rates)
 	#f.upper_bound()
 
 	#Read.parse_sol("test.upper")
+
+	f.upper_bound()
+	f.lower_bound()
+	sol = Read.parse_sol("dense_10_30_3_1_I.upper")
+	print(sol)
 	
 	# succ= Read.successors([{'section': 1, 'rate': 10, 'begin': 20},{'section': 2, 'rate': 5, 'begin': 15}])
 
